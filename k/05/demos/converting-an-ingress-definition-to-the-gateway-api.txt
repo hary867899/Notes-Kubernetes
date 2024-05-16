@@ -1,0 +1,45 @@
+PURPOSE
++++++++
+
+The purpose of this exercise is to convert an Ingress definition to its Gateway
+API equivalents, using the ingress2gateway utility.
+
+REQUIREMENTS
+++++++++++++
+
+This exercise requires a Kubernetes cluster. If you're using the same cluster
+from the previous exercises, remove the Envoy Gateway. To make the conversion,
+install the ingress2gateway utility (https://bit.ly/3Uh97Py).
+
+You will also need kubectl (https://kubernetes.io/docs/tasks/tools/#kubectl),
+as well the Helm CLI (https://helm.sh/docs/intro/install/).
+
+STEPS
++++++
+
+ 1. Deploy the nginxhello application to the default namespace in the cluster,
+    and check it is running.
+
+kubectl apply -f nginxhello.yaml
+kubectl get all
+
+ 2. Install the Ingress Nginx controller (https://bit.ly/3uaxCDs) to the
+    cluster, to set up the ingress scenario.
+
+helm install ingress-nginx ingress-nginx \
+    --repo https://kubernetes.github.io/ingress-nginx \
+    --namespace ingress-nginx --create-namespace
+
+ 3. Apply the Ingress definition from the config directory..
+
+cat config/ingress.yaml
+kubectl apply -f config/ingress.yaml
+kubectl get ing nginxhello-ingress
+
+ 4. Use the ingress2gateway utility to generate the Gateway API definitions
+    from the Ingress object.
+
+ingress2gateway print --providers ingress-nginx
+
+The ingress2gateway utility is under active development at present, but can
+help you to get started with Ingress migration.

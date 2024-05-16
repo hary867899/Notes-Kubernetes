@@ -1,0 +1,41 @@
+PURPOSE
++++++++
+
+The purpose of this exercise is to install the Envoy Gateway to a Kubernetes
+cluster, in preparation for its use with the Gateway API.
+
+REQUIREMENTS
+++++++++++++
+
+This exercise requires a Kubernetes cluster to install the Envoy Gateway to.
+The demo in the course used a local cluster created using the 'kind' tool
+(https://kind.sigs.k8s.io/). The cluster used MetalLB (https://metallb.org/) to
+provision load balancers for Services of LoadBalancer type. You can use any
+Kubernetes cluster provider that suits.
+
+You will also need kubectl (https://kubernetes.io/docs/tasks/tools/#kubectl),
+as well the Helm CLI (https://helm.sh/docs/intro/install/).
+
+STEPS
++++++
+
+ 1. Inspect the custom resource definitions for the Gateway API provided by the
+    Envoy Gateway. Determine the bundle-version and channel being used.
+
+helm show crds oci://docker.io/envoyproxy/gateway-helm --version v0.6.0
+
+ 2. Install the Envoy Gateway.
+
+helm install envoy-gateway oci://docker.io/envoyproxy/gateway-helm \
+    --version v0.6.0 -n envoy-gateway-system --create-namespace
+
+ 3. List the API resources available for the Gateway API group.
+
+kubectl api-resources --api-group gateway.networking.k8s.io
+
+ 4. Check that the Envoy Gateway was successfully installed.
+
+kubectl -n envoy-gateway-system get all
+
+If all has gone well, you should now have the Envoy Gateway running in your
+Kubernetes cluster, with Gateway API resources available for traffic routing.

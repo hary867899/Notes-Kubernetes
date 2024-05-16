@@ -1,0 +1,54 @@
+PURPOSE
++++++++
+
+The purpose of this exercise is to configure Gateway API resources, in order to
+provide external client access to an application running in Kubernetes.
+
+REQUIREMENTS
+++++++++++++
+
+This exercise requires a Kubernetes cluster with the Envoy Gateway installed.
+Follow the instructions in the previous exercise to achieve this.
+
+You will also need kubectl (https://kubernetes.io/docs/tasks/tools/#kubectl).
+
+STEPS
++++++
+
+ 1. Deploy the nginxhello application to the default namespace in the cluster,
+    and check it is running.
+
+kubectl apply -f nginxhello.yaml
+kubectl get all
+
+ 2. Create the GatewayClass object associated with the Envoy Gateway.
+
+cat config/gateway-class.yaml
+kubectl apply -f config/gateway-class.yaml
+kubectl get gc
+
+ 3. Create the Gateway object with an HTTP Listener. See what infrastructure
+    has been provisioned as a result.
+
+cat config/gateway.yaml
+kubectl apply -f config/gateway.yaml
+kubectl get gtw
+kubectl -n envoy-gateway-system get all
+
+ 4. Create the HTTPRoute object with a rule to route to the nginxhello backend
+    service.
+
+cat config/httproute.yaml
+kubectl apply -f config/httproute.yaml
+kubectl get httproute
+
+ 5. Check that you can access the nginxhello application from a web browser,
+    using the hostname you specified in the HTTPRoute definition. If using kind
+    on macOS or Windows, you may run into problems accessing the Docker network
+    for the cluster. Use port forwarding (https://bit.ly/3tZG3BG) to the Envoy
+    Proxy instance created when the Gateway object was created. You'll need to
+    remove the hostname from the HTTPRoute, as you'll be using 'localhost' as
+    the hostname in the browser.
+
+Hopefully, that's a success, and you've used the Gateway API to route HTTP
+client traffic to an application running in Kubernetes!
