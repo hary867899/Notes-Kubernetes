@@ -1,1 +1,181 @@
 Managing Storage 
+
+Persistent storage - persistent means the one which stays... as containers are ephemeral, the storage needs to be persistent... thats why its called as persistent storage 
+
+kubernetes provides storage in 4 ways or 4 api objects ... those are 1.volumes 2. persisent volumes 3. persistent volume claim 4. storage class 
+                                                           each one have thier own features 
+														  
+now, what is important, what will those storages do and how to apply them 
+
+1.volumes :
+
+volumes are given in pod spec section of yaml file. volumes are specific to the pod. so there will be problem in pod re-defnition ... a volume can be any NFS, Azure disk, EBS etc ... if its NFS we need to give server name and IP so that volume is stored there 
+i think volumes are used very less in real time as they are pod specific 
+
+2. persisent volume :
+
+we have given volume in pod defnition which is not useful that much for us ... thats why now we are going to give volume at the node level. 
+
+to get persisent volume, we need to write a yml file and give persisent volume in kind [ this is not the case with volume, as said already volumes are given in pod-spec]          
+
+when we give persisent volume which can either be NFS, Block storage in cloud etc etc a volume will be attached to that node for the use 
+
+but the volume will be attached to node ... how we gonna use it, its by persistent volume claim 
+
+3. Persistent-volume claim :
+
+how we can get volume to the pod, up to now, we only wrote some yml file and created a storage for node, so how to do it, it can be done by persistent-voulme claim 
+
+we need to give persistent volume claim in pod-spec file so that it uses the volume that is created. the exact code might be available in nocen demo, please check 
+
+--
+
+access mode - how a node or multiple nodes can access the persistent volume 
+
+three types - 1. ReadWriteOnce 2. ReadWriteMany 3. ReadOnlyMany
+                    (RWO)            (RWM)            (ROM)
+					
+if we give RWO accessmode to Persistent-volume then only one node gets access to that persisent-volume to read and write 
+           RWM                                      many nodes 
+		   ROM                                      many                                               to read only 
+		   
+--
+
+nocen explained about static provisioning of volume & dynamic provisioning of persistent volume, dont know what they are but i think dynamic provisioning is what is used by kubernetes users now 
+
+--
+
+configuration of Persistent volume ... the main contents of yml file 
+
+apiVersion : v1 
+kind : PersistentVolume
+metadata:
+  name : nameofvolume
+spec:
+  capacity:
+    storage: 10Gi
+  accesmode:
+    - ReadWriteMany
+nfs:
+ server: 172.16.94.55
+ path:  "export/volume/path"
+  
+--
+configuration of volume claim we need get if we want to use persistent volume created above 
+
+
+apiVersion : v1 
+kind : PersistentVolumeClaim
+metadata:
+  name : nameofvolumeclaim
+spec:
+  capacity:
+    storage: 10Gi
+  accesmode:
+    - ReadWriteMany
+ resources:
+  requests:
+   storage: 5Gi
+   
+// now we can use 5Gi of persistent volume created above 
+
+--
+
+using the volume claim in pods 
+
+spec: 
+  volumes: 
+  - name: somename
+    PersisentVolumeClaim:
+	 claimname: nameofpersistentvolume
+  containers:
+  - name: nginx
+  volumemounts:
+  - name: webcontent
+    mountpath: "/usr/share/nginx/html/web-app" 
+
+out of all this, what i didnt understand is, so the data that gonna go in to mountpath will be stored in the persisent-volume or not ?? have to know 
+
+-- 
+
+demo 02 
+
+he explains about the NFS server which our data is stored 
+
+then he demonstrates about how to give static provising and persistent volume etc etc ... 
+
+just go through the demo, if you understand, fine, if you dont understand, die 
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
