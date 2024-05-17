@@ -94,7 +94,7 @@ spec:
   - name: webcontent
     mountpath: "/usr/share/nginx/html/web-app" 
 
-out of all this, what i didnt understand is, so the data that gonna go in to mountpath will be stored in the persisent-volume or not ?? have to know 
+out of all this, what i didnt understand is, so the data that gonna go in to mountpath will be stored in the persisent-volume or not ?? have to know... the answer is yes, the data which either stored by us or generated from container run is stored in that folder... mounting means we are making directory in our folder as the one in another device ... so the app using other device thinks this is the local directory, but the data will come to us because we mounted our directory  
 
 -- 
 
@@ -108,15 +108,197 @@ just go through the demo, if you understand, fine, if you dont understand, die
 
 ---
 
+what is difference between static provisioning and dynamic provisioning 
+
+--
+
+Storage classes 
+
+the difference betweeen static provisioning and dynamic provisioning until now is ... in kind, we need to give storage class... instead of spec we need to give parameters 
+
+apiVersion : storage.k8s.io/v1
+kind: StorageClass
+metadata:
+ name: managed-premium
+parameters:
+  kind: Managed
+  storageaccounttype: Premimum_LRS
+provisioner: kubernetes.io/azure-disk
+
+--
+
+apiVersion : v1 
+kind : PersistentVolumeClaim
+metadata:
+  name : nameofvolumeclaim
+spec:
+  capacity:
+    storage: 10Gi
+  accesmode:
+    - ReadWriteMany
+  StorageClassName: namegiveninabovefile
+ resources:
+  requests:
+   storage: 5Gi
+
+the difference observed is we have given paramters instead of spec in dynamic provisioning ... but yet didnt understand the literal meaning 
 
 
+i think when we create a kubernetes cluster, there will be default storage classes will be provisioned by cluster or nocen already created and showed to them, this dont know 
+because nocen didnt show how to create them but there are two storage classes in the cluster in which one is default 
+
+now, in he is showing custom storage class which means two kubernetes storage class will be up for cluster when we creat it 
+
+chat gpt interpretation: static provisioning is provisioning storage manually meaning when we observe persistent volume file more above, in the spec we have given nfs server which would give us storage 
+                         while in dynamic provisioning, we just to need to add parameters of the storage we need.. the demo showed by nocen is in AKS, so when we give just parametes, it will automatically creates some storage for us in azure disk while with static we need to create it manually and give details so that it can connect ... we can do it on-prem too, but nocen didnt show it 
+						 
+						 
+--------------------------------------
 
 
+Configuration as Data- Env variables, secrets and config maps 
 
 
+Why do we need configuration as data - first of all what is meant by configuration as data... may be giving the configuration of app or workload as an outside data is what i feel 
+
+then now, why do we need it - decoupling pod from configuration helps for the app in many cases, to secure the sensitive info etc etc and nocen explained many reasons, you didnt understand but you understood the outline, so, lets go 
+
+--
+
+we can configure application in pod in three ways ... 1. Command line arguments
+                                                      2. Env. Variables
+													  3. Config maps 
+													  
+we will leave the command line arguments as they are used much in real-time scenario 
+
+now, coming to env.vraibles they are two types: user-defined & system-defined ... they shud be defined in the spec of the pod yml file. they are just particular to that pod and container inside it. 
+
+eg:
+
+spec:
+  containers:
+  - name: hello-world
+    image: someimage
+    env:
+    - name: DATABASE_SERVERNAME
+	  value:"sql.example.local"
+	- name: BACKEND_SERVERNAME
+      value: "be.example.local"	// didnt understand what is this be.example.local
+	  
+--
+
+demo 03 vscode ... please check 
+
+----
+
+Secrets 
+
+Secrets is an API object which stores sensitive info in a base64 coded format... if you want encryption of secret rather base64 coded, we can configure ... all this stores in 'etcd', so need to make sure etcd is protected 
+
+secrets are namespaced, so only pods with in the namespace specification can use secrets, if secret is attached to pod but not found, the pod wont start 
+
+three types of secrets are available in kubernetes : 1. Docker-registry
+                                                     2. generic
+													 3. tls 
+													 
+eg to create a secret // kubectl create secret generic app1 --from-literal=USERNAME=app1login --from-literal=PASSWORD='ucdwcjkdsc' // generic creates a secret either from a local file or local directory or if specified in command line ... the eg command is a secret created from command line 
+                                                                                                                                      we can use this secrets in pods as env. variables 
+
+there are two ways in which we can expose a secret 1. env.variables
+                                                   2. as volumes or files [ this is used in the real time scenario as its more flexible, so we shud concentrate on it ]
+
+now first see, how secret is used as env. variables ... just go through eg code given below 
+
+spec:
+  container:
+  - name: hello-world
+    ...
+	env:
+	- name: somename
+      valueFrom:
+        secretKeyRef:
+          name: app1
+          key: USERNAME	
+    - name: somename2
+      valueFrom:
+        secretKeyRef:
+          name: app1
+          key: PASSWORD   // totally we have two sample codes for env. variables.. one which up above declares directly to the pod at that moment
+                                                                                   one which is here which the variable is created from the secret we have imperatively created just above 		  
+
+the above length is too long, this can be shortened 
+
+spec:
+  container:
+  - name: hello-world
+    ...
+	envFrom:
+	- secretRef
+        name: app1
+		
+--
+
+now, lets see how secrets can be given as files
+
+spec:
+  volumes:
+  - name: appconfig 
+    secret:
+	  secretName: app1
+  containers:
+  - name: somename
+    ...
+	volumeMounts:
+	- name: appconfig 
+	  mountPath: "/etc/appconfig"  // this looks a bit lenghty and more process to give a secret, may be when we have many secrets it might be useful 
+	                                  what we did is, first created a volume in a secret name we created impratively 
+									  then, we mounted that volume as a file inside container .. so the secret just goes in to the folder inside container 
+									  the folder can be anything, not necessarily be the etc 
+	  
+--	  
+
+as discussed in the first lines of secret, secrets are three types, up to now, we have seen generic, now we gonna see docker-registry secret 
+
+docker-registry is used to access the private registries like docker hub, Azure container Registry, ECR etc etc 
+
+see demo, if you understand, if you dont, die 
+
+---
+
+Config maps 
 
 
+config maps are the API object which are used to define application specific configuration settings ... what are the eg's of application specific configuration ?? he will explain in demo, please write them down here for the reference 
 
+just like secrets we can give config maps as env.variables & files 
+
+eg to create a config map 
+
+// kubectl create configmap mapname --from-literal=DATABASE_SERVERNAME=sql.example.local --from-literal=BACKEND_SERVERNAME=be.example.local // creates a config map with two values 
+                                                                                                                                               but, what if we have many values, we can create config map from a file
+// kubectl create configmap mapname --from-file=filename // 
+
+we can create configmap from yml file too 
+
+//
+
+apiVersion: v1
+kind: configmap
+metadata:
+  name: mapname
+data:
+  DATABASE_SERVERNAME= sql.example.local
+  BACKEND_SERVERNAME= be.example.local 
+
+//
+
+the rest is almost same as secrets 
+
+please check demo, you will understand, if you dont, die 
+
+------------------------------------------------
+
+  
 
 
 
