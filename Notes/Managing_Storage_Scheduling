@@ -298,10 +298,70 @@ please check demo, you will understand, if you dont, die
 
 ------------------------------------------------
 
-  
+SCHEDULING 
 
+default scheduler in kubernetes - kube scheduler 
 
+scheduling done on two basis  1. resources 2. policy 
 
+resources is just the avaialble physical resources.. lets say a pod need to be run on certain node, but what if there is no memory or CPU cannot process it .... based on this, scheduler schedules a pod to node
+
+a policy given by us ... lets say we want a certain pod in only node3.. we need to give policy, how to give that policy ??? dont know 
+
+--
+
+Controlling Scheduling 
+
+we can control scheduling in 6 ways ... they are 
+
+1. Node selector     - sometimes we need some pods running on certain nodes, node selector is used for that ... how it can be done ... we can assign labels to nodes... and we can assign pods to that certain node using the match labels in pod spec.  
+2. Affinity          - just like nodeselector, we can give labels here too ... but for matching, we will use matchingexpressions other than matchlabels 
+                   
+                       eg code for affinity 
+				       
+					   spec:
+				         containers:
+					     - name: somename
+					     ...
+					     affinity:
+					       podAffinity:
+					         requiredDuringSchedulingIgnoreDuringExecution:
+						    - labelselector:
+						        matchexpressions:
+					            - key: app
+					              operator: IN
+				                  values:
+		                          - hello-world-web
+						      topologyKey: "kubernetes.io/hostname"              
+							  
+					    // may be this key, operator, values are given when we create an Affinity just like when we created down on the taints and tolerations 
+						  
+3. Taints & Tolerations - lets directly start with eg 
+                          
+						  // kubectl taint nodes c1-node1 key=MyTaint:NoSchedule 
+						  so what this command does is it stops pods from scheduling on this node, if we need pods to this node, we need to define tolerations ... then only scheduling will happen 
+						  note that if there are pods running already, they continue to run without any effect 
+						  
+						  eg code 
+						  
+						  spec:
+				         containers:
+					     - name: somename
+						 ...
+						 tolerations:
+						 - key: "key"
+						   operator: "Equal"
+						   value: "MyTaint"
+						   effect:"NoSchedule" 
+						   
+						  // note that, if we give toleration, that does not mean pod shud only run on tainted node, it can run anywhere, its just that we tainted the node but tolerating tbis pod, that does not mean it shud strictly run in here 
+						  
+watch demo, for both Affinity and Taints and Tolerations ...  you might not understand fully, you need to have a grip of match labels which you ingnored on 'Managing API server and Pods'	course ... watch it again if you needed 
+
+---
+
+		   
+						   
 
 
 

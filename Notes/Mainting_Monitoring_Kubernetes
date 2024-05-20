@@ -1,0 +1,37 @@
+Maintaining, Monitoring and troubleshooting kubernetes cluster 
+
+
+etcd  - all the data and state of the cluster is stored in etcd... so what is the meaning of this.. it means we need to make a disaster back up and make sure of its high availability 
+
+        where in kubernetes, etcd stores the data ?? etcd runs as pod in master-node just like every other object and stores its data in a container in that pod in the folder /var/lib/etcd 
+		
+		we can backup that by CronJobs ... nocen didnt show it how, but lets go forward 
+		
+		etcdctl is a CLI just like kubectl to interact with the etcd ... we can download it as binary directly from the github
+		
+		after downloading etcdctl... please create a snapshot of etcd data via below command 
+		
+		//  ETCDCTL_API=3 etcdctl --endpoints = endpointlink:port --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/server.cert --key="""/server.key snapshot save /var/lib/dat-backup.db 
+		    (API Version of etcd)  (nocen will show how to find this endpoint) (certificate and key to authorise etcd via etcdctl)                                           (main command to create a snapshot)
+			
+	    // ETCDCTL_API=3 etcdctl --write-out=table snapshot status /var/lib/dat-backup.db 		
+		   (cmd to check if the snapshot is created successfully)
+		   
+        --
+		
+        the above is for back up, if we wanna restore etcd, what needs to be done ?? but, first, what is restore ?? in the video, nocen talks about shifting etcd to other location, didnt get how to do it too, he will show it in the demo, please watch carefully and note down below 
+
+        //     ETCDCTL_API=3 etcdctl snapshot restore /var/lib/dat-backup.db
+
+        //     mv /var/lib/etcd /var/lib/etcd.OLD
+		
+		//     sudo crictl --runtime-endpoint unix:///run/containerd/containerd.sock ps 
+		
+		//     sudo crictl --runtime-endpoint unix:///run/containerd/containerd.sock stop $CONTAINER_ID 
+		
+		//     mv ./default.etcd /var/lib/etcd 
+		
+		
+		
+		
+		
