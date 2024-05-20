@@ -8,15 +8,20 @@ cd ~/content/course/02/demo
 #Container image and tag, command, --data dir, and mounts and volumes for both etcd-certs and etcd-data
 kubectl describe pod etcd-c1-cp1 -n kube-system
 
+// mywrite - the above command will give the detailed description of the etcd pod ( the etcd pod runs in kube-system namespace)
+
+
 
 #The configuration for etcd comes from the static pod manifest, check out the listen-client-urls, data-dir, volumeMounts, volumes/
 sudo more /etc/kubernetes/manifests/etcd.yaml
+
+// just like the pod manifest file we run to get our app up and run, there is etcd yaml file which makes this etcd pod up and running, the above is the location and you can cat it and see it i your cluster in aws 
 
 
 #You can get the runtime values from ps -aux
 ps -aux | grep etcd
 
-
+// etcd configuration can also be get from this command, because anyway its a process running inside our machine, right ??
 
 
 #Let's get etcdctl on our local system here...by downloading it from github.
@@ -29,11 +34,14 @@ tar -zxvf etcd-v${RELEASE}-linux-amd64.tar.gz
 cd etcd-v${RELEASE}-linux-amd64
 sudo cp etcdctl /usr/local/bin
 
+// commands to download etcdf from github 
 
 #Quick check to see if we have etcdctl...
 ETCDCTL_API=3 etcdctl --help | head 
 
+-------------------------------------------------
 
+// above nocen showed how to check etcd configuration and how to install etcd, now he gonna show how to back it up.
 
 
 #First, let's create create a secret that we're going to delete and then get back when we run the restore.
@@ -41,6 +49,7 @@ kubectl create secret generic test-secret \
     --from-literal=username='svcaccount' \
     --from-literal=password='S0mthingS0Str0ng!'
 
+// he created this password to show us he can restore it after deleting etcd 
 
 #Define a variable for the endpoint to etcd
 ENDPOINT=https://127.0.0.1:2379
@@ -66,6 +75,7 @@ sudo ETCDCTL_API=3 etcdctl --endpoints=$ENDPOINT \
 #Read the metadata from the backup/snapshot to print out the snapshot's status 
 sudo ETCDCTL_API=3 etcdctl --write-out=table snapshot status /var/lib/dat-backup.db
 
+// backed up all the data and gonna delete the secret created as its already stored 
 
 #now let's delete an object and then run a restore to get it back
 kubectl delete secret test-secret 
@@ -73,6 +83,8 @@ kubectl delete secret test-secret
 
 #Run the restore to a second folder...this will restore to the current directory
 sudo ETCDCTL_API=3 etcdctl snapshot restore /var/lib/dat-backup.db
+
+// the file will be restored to the current working directory in hidden folder ./ , just check with ls -l if it restored or not 
 
 
 #Confirm our data is in the restore directory 
@@ -82,6 +94,7 @@ sudo ls -l
 #Move the old etcd data to a safe location
 sudo mv /var/lib/etcd /var/lib/etcd.OLD
 
+// now, moving this current etcd which we have now to another place or another name, we can delete it actually, but just incase the restore fails means, we will lose everything 
 
 #Restart the static pod for etcd...
 #if you kubectl delete it will NOT restart the static pod as it's managed by the kubelet not a controller or the control plane.
@@ -92,6 +105,9 @@ echo $CONTAINER_ID
 
 #Stop the etcd container for our etcd pod and move our restored data into place
 sudo crictl --runtime-endpoint unix:///run/containerd/containerd.sock stop $CONTAINER_ID
+
+// stopped the container etcd... which means no etcd now for us and moving the restored default.etcd in hidden folder to etcd folder 
+
 sudo mv ./default.etcd /var/lib/etcd
 
 

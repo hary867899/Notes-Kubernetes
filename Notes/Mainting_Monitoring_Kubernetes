@@ -32,6 +32,26 @@ etcd  - all the data and state of the cluster is stored in etcd... so what is th
 		//     mv ./default.etcd /var/lib/etcd 
 		
 		
+		demo02 1-etcd-container.sh file ... you have written your understanding in that file itself in vscode and pushed it to github ... please check that 
 		
 		
+		
+-------
+
+now we gonna see about cluster upgrade 
+
+see the demo, you can get it mostly, if you dont get it, please re-watch it again ... mostly not watching, you need to practice this, else, you might not remember it 
+
+----------
+
+Logging and Monitoring Kubernetes Cluster 
+
+
+every kubernetes components like pods, nodes, control plane etc etc will get some logs based on thier run ...we will go each one by one.. first we will look about pods and containers 
+
+
+logging in containers    -    containers will generally write out to stdout or stderr and where those standard streams goes depends container runtime and configuration (didnt even get a bit of what he is saying )(chatgpt interpretation - Containers generally write their output (like logs or error messages) to stdout and stderr. Where this output actually goes (e.g., to a log file, to the console, to a monitoring system) depends on the container runtime (like Docker) and how it is configured)
+                              
+							  the default logging driver when using containerd is /var/log/containers
+		                      but these logs store inside of a container... when the container is lost, the logs will get removed... thats why the logs needed to store external to the containers 
 		
