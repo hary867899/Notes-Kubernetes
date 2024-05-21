@@ -54,4 +54,90 @@ logging in containers    -    containers will generally write out to stdout or s
                               
 							  the default logging driver when using containerd is /var/log/containers
 		                      but these logs store inside of a container... when the container is lost, the logs will get removed... thats why the logs needed to store external to the containers 
-		
+                              
+							  
+							  // kubectl logs $POD_NAME
+							  
+							  // kubectl logs $POD_NAME -c $CONTAINER_NAME
+							  
+							  what if the API Server is down, kubectl wont be able to give back logs, what do we need to do at that time ??
+							  we need to log in to node and get the container logs direclty from the containerd commands 
+							  
+							  // crictl --runtime-endpoint unix:///run/containerd/containerd.sock logs $CONTAINER_ID
+							  
+							  what if the container is itself isnt available ?? we can get logs from the folder it stores in the node ... may be the logs are persisted to that folder continuously irrespective of container running 
+							  
+							  // tail /var/log/containers/$CONTAINER_NAME_$CONTAINER_ID
+
+---
+
+Node Logs
+						  
+in a Node, two services are imp on node, they are kubelet and kube-proxy
+
+in systemd systems like ubuntu ... kubelet will store logs in journald .. to access that data we need to use journalctl (but the catch here, do you know what kind of things and what kind of logs kubelet will handle or produce ?? you basically dont even know what kubelet does ... please learn it & in this context, may be kubelet is the one which handles the pods and containers, dont know but as we talking about containers, i feel kubelet will manage it )
+for a non systemd systems ...      kubelet stores logs in /var/log/kubelet.log 
+
+
+kube-proxy will run as a container inside a pod, so the logs will be accessed via kubectl or if kubectl not available, they can be accessed from /var/log/containers just like any other container 
+
+--
+Control-plane logs 
+
+in control-plane, we know every component runs as pods in a kube-system namespace, so we can access all the logs by kubectl, command will be 
+// kubectl logs -n kube-system $POD_NAME // if you dont know podname of the component, just do //kubectl get pods kube-system // 
+
+if kubectl not available, we can access by containerd as discussed above, the commands are 
+// crictl logs $CONTAINE_ID // if container crashed, as discussed the logs will be available on /var/logs/containers 
+
+not all this is for if they running as pods, if they run as systemd services, you need to use journald which is out of scope topic for us now 
+
+--
+
+above, we have discussed logs related to containers, pods, nodes etc the components of cluster 
+
+how do we wanna access logs from the resources ?? (firstly, what are resources in kubernetes ?? resources are the entities kubernetes manages in cluster while components are the one which handles these entities)
+                                                   eg of resources are deployments, services, congimaps etc etc 
+
+the logs involved with resources come from the operations done on resources like something gone wrong with  pod scheduling or eviction pr creating deployment or scaling it or node state changes etc etc 
+all these are called events in kubernetes, so to access those logs, we can use below command 
+
+// kubectl get events              // this command will show the cluster wide events 
+// kubectl describe $TYPE $NAME    //												   
+
+note these logs store only for one hour, so we need to use external log aggregator to store that data 
+
+--
+
+demo - as said, this course gets to you only by practice, not just seeing, but now see, do defnitley practice in future 
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
